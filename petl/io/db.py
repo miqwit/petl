@@ -344,7 +344,7 @@ def todb(table, dbo, tablename, schema=None, commit=True,
 Table.todb = todb
 
 
-def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False):
+def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False, replace=False):
 
     # need to deal with polymorphic dbo argument
     # what sort of duck is it?
@@ -392,6 +392,9 @@ def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False):
 
 SQL_TRUNCATE_QUERY = 'DELETE FROM %s'
 SQL_INSERT_QUERY = 'INSERT INTO %s (%s) VALUES (%s)'
+
+if replace:
+    SQL_INSERT_QUERY = 'REPLACE INTO %s (%s) VALUES (%s)'
 
 
 def _todb_dbapi_connection(table, connection, tablename, schema=None,
@@ -602,7 +605,7 @@ def _todb_sqlalchemy_session(table, session, tablename, schema=None,
                                 truncate=truncate)
 
 
-def appenddb(table, dbo, tablename, schema=None, commit=True):
+def appenddb(table, dbo, tablename, schema=None, commit=True, replace=False):
     """
     Load data into an existing database table via a DB-API 2.0
     connection or cursor. As :func:`petl.io.db.todb` except that the database
@@ -621,7 +624,7 @@ def appenddb(table, dbo, tablename, schema=None, commit=True):
 
     try:
         _todb(table, dbo, tablename, schema=schema, commit=commit,
-              truncate=False)
+              truncate=False, replace=replace)
 
     finally:
         if needs_closing:
