@@ -346,6 +346,7 @@ Table.todb = todb
 
 SQL_TRUNCATE_QUERY = 'DELETE FROM %s'
 SQL_INSERT_QUERY = 'INSERT INTO %s (%s) VALUES (%s)'
+SQL_REPLACE_QUERY = 'REPLACE INTO %s (%s) VALUES (%s)'
 
 def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False, replace=False):
 
@@ -356,7 +357,7 @@ def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False, repla
     if _is_dbapi_connection(dbo):
         debug('assuming %r is standard DB-API 2.0 connection', dbo)
         _todb_dbapi_connection(table, dbo, tablename, schema=schema,
-                               commit=commit, truncate=truncate)
+                               commit=commit, truncate=truncate, replace=replace)
 
     # does it quack like a standard DB-API 2.0 cursor?
     elif _is_dbapi_cursor(dbo):
@@ -392,13 +393,9 @@ def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False, repla
     else:
         raise ArgumentError('unsupported database object type: %r' % dbo)
 
-    # Use REPLACE keyword if specified so, instead of INSERT
-    if replace:
-        SQL_INSERT_QUERY = 'REPLACE INTO %s (%s) VALUES (%s)'
-
 
 def _todb_dbapi_connection(table, connection, tablename, schema=None,
-                           commit=True, truncate=False):
+                           commit=True, truncate=False, replace=False):
 
     # sanitise table name
     tablename = _quote(tablename)
@@ -431,7 +428,10 @@ def _todb_dbapi_connection(table, connection, tablename, schema=None,
         cursor = connection.cursor()
 
     insertcolnames = ', '.join(colnames)
-    insertquery = SQL_INSERT_QUERY % (tablename, insertcolnames, placeholders)
+    if replace:
+        insertquery = SQL_REPLACE_QUERY % (tablename, insertcolnames, placeholders)
+    else:
+        insertquery = SQL_INSERT_QUERY % (tablename, insertcolnames, placeholders)
     debug('insert data via query %r' % insertquery)
     cursor.executemany(insertquery, it)
 
