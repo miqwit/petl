@@ -344,6 +344,9 @@ def todb(table, dbo, tablename, schema=None, commit=True,
 Table.todb = todb
 
 
+SQL_TRUNCATE_QUERY = 'DELETE FROM %s'
+SQL_INSERT_QUERY = 'INSERT INTO %s (%s) VALUES (%s)'
+
 def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False, replace=False):
 
     # need to deal with polymorphic dbo argument
@@ -389,12 +392,9 @@ def _todb(table, dbo, tablename, schema=None, commit=True, truncate=False, repla
     else:
         raise ArgumentError('unsupported database object type: %r' % dbo)
 
-
-SQL_TRUNCATE_QUERY = 'DELETE FROM %s'
-SQL_INSERT_QUERY = 'INSERT INTO %s (%s) VALUES (%s)'
-
-if replace:
-    SQL_INSERT_QUERY = 'REPLACE INTO %s (%s) VALUES (%s)'
+    # Use REPLACE keyword if specified so, instead of INSERT
+    if replace:
+        SQL_INSERT_QUERY = 'REPLACE INTO %s (%s) VALUES (%s)'
 
 
 def _todb_dbapi_connection(table, connection, tablename, schema=None,
